@@ -1,0 +1,162 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Olalifestyle</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet" />
+</head>
+
+<body>
+  <div class="hero-container">
+
+    <!-- 🔹 NAVIGATION BAR -->
+    <header class="navbar">
+      <div class="nav-left">
+        <span class="hashtag">#<span class="highlight">Olalifestyle</span></span>
+      </div>
+
+      <nav class="nav-center">
+        <a href="?category=Home" class="{% if selected_category == 'Home' %}active{% endif %}">HOME</a>
+        {% for cat in categories %}
+          <a href="?category={{ cat.name }}" class="{% if selected_category == cat.name %}active{% endif %}">
+            {{ cat.name|upper }}
+          </a>
+        {% endfor %}
+      </nav>
+
+      <div class="nav-right">
+        <a href="#"><i class="bx bxl-instagram"></i></a>
+        <a href="#"><i class="bx bxl-twitter"></i></a>
+      </div>
+    </header>
+
+    <!-- 🔹 HERO SECTION -->
+    <section class="hero-title">
+      <h1>OLA LIFESTYLE</h1>
+    </section>
+
+    <!-- 🔹 GALLERY -->
+    <div class="gallery-grid">
+      {% for image in images %}
+        <div class="gallery-item">
+          <img
+            src="{{ image.image.url }}"
+            alt="{{ image.category.name }}"
+            loading="lazy"
+            data-src="{{ image.image.url|escapejs }}"
+            data-alt="{{ image.category.name|escapejs }}"
+            data-index="{{ forloop.counter0 }}"
+            class="gallery-img"
+          />
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- 🔹 LIGHTBOX MODAL -->
+    <div id="lightbox" class="lightbox" onclick="closeLightbox()">
+      <div class="lightbox-topbar" onclick="event.stopPropagation();">
+        <span class="close" onclick="closeLightbox()">&times;</span>
+        <a id="download-btn" class="download-button" download target="_blank">
+          <i class="bx bx-download"></i>
+        </a>
+      </div>
+
+      <img
+        id="lightbox-img"
+        class="lightbox-content"
+        onclick="event.stopPropagation(); toggleZoom()"
+      />
+
+      <div id="caption" class="lightbox-caption"></div>
+
+      <a class="prev" onclick="event.stopPropagation(); changeSlide(-1)">&#10094;</a>
+      <a class="next" onclick="event.stopPropagation(); changeSlide(1)">&#10095;</a>
+    </div>
+  </div>
+
+  <!-- 🔹 JAVASCRIPT -->
+  <script>
+      const galleryImages = document.querySelectorAll('.gallery-img');
+      let currentIndex = 0;
+  
+      function openLightbox(src, alt, index) {
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+        const caption = document.getElementById('caption');
+        const downloadBtn = document.getElementById('download-btn');
+  
+        downloadBtn.href = src;
+        currentIndex = index;
+  
+        lightboxImg.classList.remove('zoomed');
+        lightbox.style.display = 'block';
+        lightboxImg.src = src;
+        caption.textContent = alt || '';
+      }
+  
+      function closeLightbox() {
+        document.getElementById('lightbox').style.display = 'none';
+      }
+  
+      function toggleZoom() {
+        const img = document.getElementById('lightbox-img');
+        img.classList.toggle('zoomed');
+      }
+  
+      function changeSlide(direction) {
+        currentIndex += direction;
+  
+        if (currentIndex < 0) {
+          currentIndex = galleryImages.length - 1;
+        }
+        if (currentIndex >= galleryImages.length) {
+          currentIndex = 0;
+        }
+  
+        const newImg = galleryImages[currentIndex];
+        openLightbox(
+          newImg.getAttribute('data-src'),
+          newImg.getAttribute('data-alt'),
+          currentIndex
+        );
+      }
+  
+      galleryImages.forEach((img) => {
+        img.addEventListener('click', () => {
+          const src = img.getAttribute('data-src');
+          const alt = img.getAttribute('data-alt');
+          const index = parseInt(img.getAttribute('data-index'));
+  
+          openLightbox(src, alt, index);
+        });
+      });
+  
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeLightbox();
+        if (event.key === 'ArrowRight') changeSlide(1);
+        if (event.key === 'ArrowLeft') changeSlide(-1);
+      });
+  
+      // 🔹 Animate images on scroll
+      const items = document.querySelectorAll('.gallery-item');
+  
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.1 }
+      );
+  
+      items.forEach((item) => {
+        observer.observe(item);
+      });
+  </script>
+  
